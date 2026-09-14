@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: swap-marketplace-app
+  labels:
+    app: swap-marketplace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: swap-marketplace
+  template:
+    metadata:
+      labels:
+        app: swap-marketplace
+    spec:
+      containers:
+        - name: swap-marketplace
+          image: swap-marketplace:latest
+          imagePullPolicy: IfNotPresent   # use local image built via `minikube image build`
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: swap-marketplace-config
+            - secretRef:
+                name: swap-marketplace-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: swap-marketplace-service
+spec:
+  type: NodePort
+  selector:
+    app: swap-marketplace
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30080

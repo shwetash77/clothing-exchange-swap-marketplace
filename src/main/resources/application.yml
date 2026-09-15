@@ -20,6 +20,6 @@ app:
     expiration-ms: 86400000  # 24h
 
 razorpay:
-  key-id: ${RAZORPAY_KEY_ID: rzp_test_TbqJKiwzliEQVD
-  key-secret: ${RAZORPAY_KEY_SECRET: ZObrBexXMttTVWRSUyD4AW4R
-  webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:replace_me}
+  key-id: ${RAZORPAY_KEY_ID:}
+  key-secret: ${RAZORPAY_KEY_SECRET:}
+  webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:}

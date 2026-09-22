@@ -1,14 +1,9 @@
 # Swap Marketplace
-
-A backend for a clothing exchange/swap marketplace, built to demonstrate
-production-relevant backend concerns: RBAC, concurrency-safe state
-transitions, and an escrow-style payment flow — not just CRUD.
+A full-stack clothing exchange/swap marketplace, built to demonstrate production-relevant concerns: RBAC, concurrency-safe state transitions, and an escrow-style payment flow — not just CRUD. The backend is Spring Boot; the frontend is a companion Angular 20 app (in /frontend) covering the full user flow: browsing listings, requesting swaps, and completing escrow payments via Razorpay.
 
 ## Stack
-Java 21 · Spring Boot 3 · Spring Security (JWT) · PostgreSQL · Razorpay API ·
-Docker · Kubernetes
+Java 21 · Spring Boot 3 · Spring Security (JWT) · PostgreSQL · Razorpay API · Docker · Kubernetes · Angular 20
 
-## Core design decisions (be ready to explain these in an interview)
 
 **Concurrency-safe item locking.** `Item` carries a `@Version` column.
 `SwapService.acceptSwap()` is `@Transactional`; if two swap requests for the
@@ -84,7 +79,7 @@ POST   /payments/webhook               (Razorpay signature-verified, public)
 - **Sprint 4** — Dockerized, deployed to local Kubernetes (Minikube)
 - **Sprint 5** — AWS deployment, polish (reviews, admin endpoints)
 
-## Known simplifications (called out intentionally, not hidden)
+## Known simplifications
 
 - `ddl-auto: update` is used for convenience; a real deployment would use
   Flyway/Liquibase migrations instead.
@@ -92,7 +87,15 @@ POST   /payments/webhook               (Razorpay signature-verified, public)
   would typically release the deposit and capture only a small fee.
 - No refresh-token rotation — access tokens are long-lived (24h) for demo
   simplicity.
-     ## Frontend Screenshots
+ ## Running the frontend
+
+The Angular frontend lives in `/frontend`.
+
+cd frontend
+npm install
+npm start
+
+The app runs at http://localhost:4200 and expects the backend to be running at http://localhost:8080 (see proxy.conf.json).
 ## Frontend Screenshots
 
 ### Item Detail Page

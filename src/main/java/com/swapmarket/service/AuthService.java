@@ -33,11 +33,12 @@ public class AuthService {
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        user.setRole(Role.USER);
+        // Demo convenience so the UI can sign up sellers. ADMIN can never be self-assigned.
+        user.setRole("SELLER".equalsIgnoreCase(request.getRole()) ? Role.SELLER : Role.USER);
         userRepository.save(user);
 
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
-        return new AuthResponse(token, user.getRole().name());
+        return new AuthResponse(token, user.getRole().name(), user.getId(), user.getName());
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -49,6 +50,6 @@ public class AuthService {
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
 
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
-        return new AuthResponse(token, user.getRole().name());
+        return new AuthResponse(token, user.getRole().name(), user.getId(), user.getName());
     }
 }

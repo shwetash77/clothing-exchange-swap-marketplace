@@ -38,6 +38,10 @@ public class ItemService {
         return itemRepository.findByStatus(ItemStatus.AVAILABLE);
     }
 
+    public List<Item> listByOwner(Long ownerId) {
+        return itemRepository.findByOwnerId(ownerId);
+    }
+
     public Item getById(Long id) {
         return itemRepository.findById(id)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Item not found"));

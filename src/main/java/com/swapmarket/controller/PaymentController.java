@@ -3,7 +3,8 @@ package com.swapmarket.controller;
 import com.razorpay.RazorpayException;
 import com.razorpay.Utils;
 import com.swapmarket.dto.DepositRequest;
-import com.swapmarket.entity.SwapTransaction;
+import com.swapmarket.dto.PaymentSummary;
+import com.swapmarket.mapper.ResponseMapper;
 import com.swapmarket.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
@@ -18,13 +19,14 @@ import org.springframework.web.bind.annotation.*;
 public class PaymentController {
 
     private final PaymentService paymentService;
+    private final ResponseMapper mapper;
 
     @Value("${razorpay.webhook-secret}")
     private String webhookSecret;
 
     @PostMapping("/deposit")
-    public ResponseEntity<SwapTransaction> createDeposit(@RequestBody DepositRequest request) throws RazorpayException {
-        return ResponseEntity.ok(paymentService.createDeposit(request));
+    public ResponseEntity<PaymentSummary> createDeposit(@RequestBody DepositRequest request) throws RazorpayException {
+        return ResponseEntity.ok(mapper.toPayment(paymentService.createDeposit(request)));
     }
 
     @PostMapping("/{swapRequestId}/release")

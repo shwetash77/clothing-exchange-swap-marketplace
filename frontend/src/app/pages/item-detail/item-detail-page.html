@@ -1,0 +1,62 @@
+<a routerLink="/items" class="back">← Back to browse</a>
+
+@if (error()) {
+  <p class="alert error">{{ error() }}</p>
+} @else if (item(); as it) {
+  <div class="detail">
+    <div class="gallery">
+      <div class="hero-img">
+        @if (it.images.length) {
+          <img [src]="it.images[activeImage()]" [alt]="it.title" />
+        } @else {
+          <span class="thumb-fallback big">{{ it.title.charAt(0) }}</span>
+        }
+      </div>
+      @if (it.images.length > 1) {
+        <div class="thumbs">
+          @for (img of it.images; track $index) {
+            <button [class.active]="$index === activeImage()" (click)="activeImage.set($index)">
+              <img [src]="img" [alt]="'Photo ' + ($index + 1)" />
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="info">
+      <app-status-badge [status]="it.status" />
+      <h1>{{ it.title }}</h1>
+      <p class="meta">
+        @if (it.size) { <span>Size {{ it.size }}</span> }
+        @if (it.condition) { <span>{{ it.condition }}</span> }
+        @if (it.category) { <span>{{ it.category }}</span> }
+      </p>
+      @if (it.description) { <p class="desc">{{ it.description }}</p> }
+      <p class="muted small">Listed by {{ it.owner.name }} on {{ it.createdAt | date: 'mediumDate' }}</p>
+
+      <div class="card request-box">
+        @if (isOwner()) {
+          <p class="muted">This is your listing.</p>
+        } @else if (!canRequest()) {
+          <p class="muted">This item is not available for swapping right now.</p>
+        } @else {
+          <h3>Request a swap</h3>
+          <label>What will you offer?
+            <select [ngModel]="offeredId()" (ngModelChange)="offeredId.set($event)">
+              <option [ngValue]="null">Deposit only (no item)</option>
+              @for (mine of myItems(); track mine.id) {
+                <option [ngValue]="mine.id">{{ mine.title }}</option>
+              }
+            </select>
+          </label>
+          <button class="btn primary block" (click)="requestSwap()" [disabled]="submitting()">
+            {{ submitting() ? 'Sending…' : 'Send swap request' }}
+          </button>
+          <p class="muted small">The owner must accept before any deposit is taken.</p>
+        }
+      </div>
+    </div>
+  </div>
+} @else {
+  <p class="muted">Loading…</p>
+}

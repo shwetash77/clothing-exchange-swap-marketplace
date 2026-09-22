@@ -1,0 +1,96 @@
+<div class="page-head">
+  <div>
+    <h1>My swaps</h1>
+    <p class="muted">Track requests, deposits and completed swaps.</p>
+  </div>
+  <button class="btn" (click)="load()">↻ Refresh</button>
+</div>
+
+<div class="tabs">
+  <button [class.active]="tab() === 'sent'" (click)="tab.set('sent')">Sent <span class="count">{{ sent().length }}</span></button>
+  <button [class.active]="tab() === 'received'" (click)="tab.set('received')">Received <span class="count">{{ received().length }}</span></button>
+</div>
+
+@if (loading()) {
+  <p class="muted">Loading…</p>
+} @else if (error()) {
+  <p class="alert error">{{ error() }} <button class="link" (click)="load()">Retry</button></p>
+} @else {
+  @let list = tab() === 'sent' ? sent() : received();
+
+  @if (list.length === 0) {
+    <div class="empty card">
+      <h3>{{ tab() === 'sent' ? 'No requests sent yet' : 'No requests received yet' }}</h3>
+      @if (tab() === 'sent') { <p class="muted"><a routerLink="/items">Browse items</a> and request your first swap.</p> }
+      @else { <p class="muted">When someone requests one of your items, it will show up here.</p> }
+    </div>
+  }
+
+  @for (s of list; track s.id) {
+    <article class="card swap">
+      <header class="swap-head">
+        <div>
+          <a class="swap-title" [routerLink]="['/items', s.item.id]">{{ s.item.title }}</a>
+          <p class="muted small">
+            @if (tab() === 'sent') { Owner: {{ s.item.owner.name }} } @else { Requested by {{ s.requester.name }} }
+            · {{ s.createdAt | date: 'mediumDate' }}
+          </p>
+        </div>
+        <app-status-badge [status]="s.status" />
+      </header>
+
+      <p class="offer">
+        <strong>Offering:</strong>
+        @if (s.offeredItem) { {{ s.offeredItem.title }} } @else { deposit only }
+      </p>
+
+      @if (s.payment; as p) {
+        <div class="payment">
+          <div class="payment-head">
+            <strong>Deposit {{ p.amount | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
+            <app-status-badge [status]="p.status" />
+          </div>
+          <app-payment-timeline [status]="p.status" />
+        </div>
+      }
+
+      <footer class="actions">
+        @if (busyId() === s.id) {
+          <span class="muted">Working…</span>
+        } @else {
+          <!-- Owner decides on a pending request -->
+          @if (s.status === 'PENDING' && tab() === 'received') {
+            <button class="btn primary" (click)="accept(s)">Accept</button>
+            <button class="btn" (click)="cancel(s)">Decline</button>
+          }
+
+          <!-- Requester withdraws a pending request -->
+          @if (s.status === 'PENDING' && tab() === 'sent') {
+            <button class="btn" (click)="cancel(s)">Cancel request</button>
+          }
+
+          <!-- Requester pays the escrow deposit once accepted -->
+          @if (s.status === 'ACCEPTED' && tab() === 'sent' && (!s.payment || s.payment.status === 'CREATED')) {
+            @if (!s.payment) {
+              <label class="inline">Deposit ₹
+                <input type="number" min="1" [ngModel]="deposit()" (ngModelChange)="deposit.set($event)" />
+              </label>
+            }
+            <button class="btn primary" (click)="startPayment(s)">
+              {{ s.payment ? 'Complete payment' : 'Pay deposit' }}
+            </button>
+          }
+          @if (s.status === 'ACCEPTED' && tab() === 'received' && !s.payment) {
+            <span class="muted">Waiting for the requester to pay the deposit.</span>
+          }
+
+          <!-- Once funds are held, either party can close the swap out -->
+          @if (s.status === 'ACCEPTED' && s.payment?.status === 'HELD') {
+            <button class="btn primary" (click)="confirmComplete(s)">Confirm swap completed</button>
+            <button class="btn danger" (click)="reportProblem(s)">Report a problem (refund)</button>
+          }
+        }
+      </footer>
+    </article>
+  }
+}

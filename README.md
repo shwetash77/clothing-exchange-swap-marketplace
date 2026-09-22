@@ -92,3 +92,26 @@ POST   /payments/webhook               (Razorpay signature-verified, public)
   would typically release the deposit and capture only a small fee.
 - No refresh-token rotation — access tokens are long-lived (24h) for demo
   simplicity.
+     ## Frontend Screenshots
+## Frontend Screenshots
+
+### Item Detail Page
+<img width="1528" height="898" alt="Item detail page" src="https://github.com/user-attachments/assets/cf44d595-6f49-4c6b-abf5-c3d24387cf45" />
+
+### My Swaps - Sent Tab
+<img width="1557" height="957" alt="My swaps sent tab" src="https://github.com/user-attachments/assets/2ae88d0f-f9b0-4ac6-bbd9-7a1cb0612854" />
+
+### My Swaps - Received Tab
+<img width="1542" height="960" alt="My swaps received tab" src="https://github.com/user-attachments/assets/4efcd387-26e0-41f0-9af3-04d6df79db32" />
+
+### Razorpay Checkout
+<img width="1507" height="886" alt="Razorpay checkout" src="https://github.com/user-attachments/assets/5fd8fbc9-ff1b-42c4-b925-2c656b2d929c" />
+
+### Payment Successful
+<img width="1820" height="960" alt="Payment successful" src="https://github.com/user-attachments/assets/cd5e3999-9655-4547-8a18-5f9dfe175b20" />
+
+### My Swaps - After Payment
+<img width="1711" height="992" alt="My swaps after payment" src="https://github.com/user-attachments/assets/67134678-b820-4c61-ba5b-67e4397897b4" />
+
+
+

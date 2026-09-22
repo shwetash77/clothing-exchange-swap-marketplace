@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +29,14 @@ public class SwapService {
      * status yet, so multiple people can request the same item
      * simultaneously without conflict. The lock only happens at accept time.
      */
+    public List<SwapRequest> listSent(Long userId) {
+        return swapRequestRepository.findByRequesterIdOrderByCreatedAtDesc(userId);
+    }
+
+    public List<SwapRequest> listReceived(Long ownerId) {
+        return swapRequestRepository.findByItemOwnerIdOrderByCreatedAtDesc(ownerId);
+    }
+
     public SwapRequest createRequest(SwapRequestDto dto, User requester) {
         Item item = itemRepository.findById(dto.getItemId())
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Item not found"));
@@ -85,6 +94,11 @@ public class SwapService {
         }
 
         Item item = request.getItem();
+
+        // Only the item's owner may accept a swap for it.
+        if (!item.getOwner().getId().equals(currentUser.getId())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Only the item's owner can accept this swap");
+        }
 
         if (item.getStatus() != ItemStatus.AVAILABLE) {
             throw new ApiException(HttpStatus.CONFLICT, "Item is no longer available");

@@ -1,0 +1,35 @@
+<header class="nav">
+  <div class="container nav-inner">
+    <a routerLink="/items" class="brand">Swap<span>Market</span></a>
+
+    @if (auth.isLoggedIn()) {
+      <nav class="links">
+        <a routerLink="/items" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Browse</a>
+        <a routerLink="/swaps" routerLinkActive="active">My swaps</a>
+        @if (auth.canSell()) {
+          <a routerLink="/items/new" routerLinkActive="active">List an item</a>
+        }
+      </nav>
+      <div class="user">
+        <span>{{ auth.name() }}</span>
+        <span class="pill">{{ auth.role() }}</span>
+        <button class="btn small" (click)="auth.logout()">Log out</button>
+      </div>
+    } @else {
+      <nav class="links">
+        <a routerLink="/login" routerLinkActive="active">Log in</a>
+        <a routerLink="/signup" routerLinkActive="active">Sign up</a>
+      </nav>
+    }
+  </div>
+</header>
+
+<main class="container">
+  <router-outlet />
+</main>
+
+<div class="toasts" aria-live="polite">
+  @for (t of toast.toasts(); track t.id) {
+    <div class="toast" [class]="'toast ' + t.type" (click)="toast.dismiss(t.id)">{{ t.message }}</div>
+  }
+</div>

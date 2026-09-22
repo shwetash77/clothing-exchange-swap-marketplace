@@ -1,0 +1,51 @@
+<a routerLink="/items" class="back">← Back to browse</a>
+
+<section class="card form-card">
+  <h1>List an item</h1>
+  <p class="muted">Add a clear title, honest condition and a photo or two.</p>
+
+  @if (error()) { <p class="alert error">{{ error() }}</p> }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <label>Title
+      <input type="text" formControlName="title" placeholder="e.g. Denim jacket, hardly worn" />
+      @if (form.controls.title.touched && form.controls.title.invalid) { <small class="field-error">Title is required.</small> }
+    </label>
+
+    <label>Description
+      <textarea rows="4" formControlName="description" placeholder="Fit, brand, any flaws…"></textarea>
+    </label>
+
+    <div class="row3">
+      <label>Category
+        <select formControlName="category">
+          <option value="" disabled>Select…</option>
+          @for (c of categories; track c) { <option [value]="c">{{ c }}</option> }
+        </select>
+        @if (form.controls.category.touched && form.controls.category.invalid) { <small class="field-error">Required.</small> }
+      </label>
+      <label>Size
+        <select formControlName="size">
+          <option value="" disabled>Select…</option>
+          @for (s of sizes; track s) { <option [value]="s">{{ s }}</option> }
+        </select>
+        @if (form.controls.size.touched && form.controls.size.invalid) { <small class="field-error">Required.</small> }
+      </label>
+      <label>Condition
+        <select formControlName="condition">
+          <option value="" disabled>Select…</option>
+          @for (c of conditions; track c) { <option [value]="c">{{ c }}</option> }
+        </select>
+        @if (form.controls.condition.touched && form.controls.condition.invalid) { <small class="field-error">Required.</small> }
+      </label>
+    </div>
+
+    <label>Image URLs <span class="muted small">(one per line, optional)</span>
+      <textarea rows="3" formControlName="images" placeholder="https://…"></textarea>
+    </label>
+
+    <button class="btn primary" type="submit" [disabled]="submitting()">
+      {{ submitting() ? 'Publishing…' : 'Publish listing' }}
+    </button>
+  </form>
+</section>

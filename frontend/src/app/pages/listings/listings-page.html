@@ -1,0 +1,51 @@
+<div class="page-head">
+  <div>
+    <h1>Browse the wardrobe</h1>
+    <p class="muted">Available pieces from people near you.</p>
+  </div>
+  @if (auth.canSell()) {
+    <a class="btn primary" routerLink="/items/new">+ List an item</a>
+  }
+</div>
+
+<div class="chips">
+  <button class="chip" [class.active]="category() === ''" (click)="select('')">All</button>
+  @for (c of categories; track c) {
+    <button class="chip" [class.active]="category() === c" (click)="select(c)">{{ c }}</button>
+  }
+</div>
+
+@if (loading()) {
+  <p class="muted">Loading items…</p>
+} @else if (error()) {
+  <p class="alert error">{{ error() }} <button class="link" (click)="load()">Retry</button></p>
+} @else if (items().length === 0) {
+  <div class="empty card">
+    <h3>Nothing here yet</h3>
+    <p class="muted">No available items{{ category() ? ' in ' + category() : '' }}. Check back soon.</p>
+  </div>
+} @else {
+  <div class="grid">
+    @for (item of items(); track item.id) {
+      <a class="item-card card" [routerLink]="['/items', item.id]">
+        <div class="thumb">
+          @if (item.images.length) {
+            <img [src]="item.images[0]" [alt]="item.title" loading="lazy" />
+          } @else {
+            <span class="thumb-fallback">{{ item.title.charAt(0) }}</span>
+          }
+        </div>
+        <div class="item-body">
+          <h3>{{ item.title }}</h3>
+          <p class="meta">
+            @if (item.size) { <span>Size {{ item.size }}</span> }
+            @if (item.condition) { <span>{{ item.condition }}</span> }
+          </p>
+          <p class="muted small">
+            @if (item.category) { {{ item.category }} · }by {{ item.owner.name }}
+          </p>
+        </div>
+      </a>
+    }
+  </div>
+}

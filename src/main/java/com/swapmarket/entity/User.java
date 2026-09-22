@@ -1,5 +1,5 @@
 package com.swapmarket.entity;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.swapmarket.enums.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -31,6 +31,7 @@ public class User implements UserDetails {
     private String email;
 
     @Column(nullable = false)
+    @JsonIgnore
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
@@ -48,6 +49,7 @@ public class User implements UserDetails {
     }
 
     @Override
+    @JsonIgnore
     public String getPassword() {
         return passwordHash;
     }

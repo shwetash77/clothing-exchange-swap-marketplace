@@ -1,4 +1,5 @@
 # Swap Marketplace
+![CI](https://github.com/shwetash77/clothing-exchange-swap-marketplace/actions/workflows/ci.yml/badge.svg)
 A full-stack clothing exchange/swap marketplace, built to demonstrate production-relevant concerns: RBAC, concurrency-safe state transitions, and an escrow-style payment flow — not just CRUD. The backend is Spring Boot; the frontend is a companion Angular 20 app (in /frontend) covering the full user flow: browsing listings, requesting swaps, and completing escrow payments via Razorpay.
 
 ## Stack

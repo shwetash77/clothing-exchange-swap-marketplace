@@ -1,0 +1,6 @@
+   {
+     "rewrites": [
+       { "source": "/api/:path*", "destination": "https://clothing-exchange-swap-marketplace-vau3.onrender.com/:path*" },
+       { "source": "/(.*)", "destination": "/index.html" }
+     ]
+   }

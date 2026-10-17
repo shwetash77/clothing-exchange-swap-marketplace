@@ -117,5 +117,16 @@ The app runs at http://localhost:4200 and expects the backend to be running at h
 ### My Swaps - After Payment
 <img width="1711" height="992" alt="My swaps after payment" src="https://github.com/user-attachments/assets/67134678-b820-4c61-ba5b-67e4397897b4" />
 
+## Live Demo
+
+- **Live app:** https://clothing-exchange-swap-marketplace-opal.vercel.app
+- **API:** https://clothing-exchange-swap-marketplace-vau3.onrender.com
+
+> The backend runs on Render's free plan, so the first request after a period of inactivity can take up to a minute while the server wakes up.
+
+**Deployment:** Angular frontend on Vercel (with `/api` rewritten to the backend), Spring Boot API in Docker on Render, PostgreSQL on Neon.
+
+**Try it:** Sign up as a seller to list items, or as a regular user to request swaps. Deposits run in Razorpay test mode, so use the test card `5267 3181 8797 5449` with any future expiry date and any CVV. No real money is charged.
+
 
 

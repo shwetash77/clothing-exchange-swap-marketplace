@@ -5,7 +5,7 @@ export const API_URL = '/api';
 
 // Public (publishable) Razorpay TEST key id. Safe to keep in frontend code;
 // never put the key *secret* here.
-export const RAZORPAY_KEY_ID = 'rzp_test_Tf08Fig0xeOkER';
+export const RAZORPAY_KEY_ID = 'rzp_test_Tp0d8CYs6DdiGt';
 
 export const CATEGORIES = ['Tops', 'Bottoms', 'Dresses', 'Outerwear', 'Ethnic wear', 'Shoes', 'Accessories'];
 export const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free size'];

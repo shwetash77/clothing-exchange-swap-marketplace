@@ -35,6 +35,10 @@ public class SwapRequest {
     @Column(nullable = false)
     private SwapStatus status = SwapStatus.PENDING;
 
+    /** Optional note from the owner when a request is rejected. */
+    @Column(length = 500)
+    private String rejectionReason;
+
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 

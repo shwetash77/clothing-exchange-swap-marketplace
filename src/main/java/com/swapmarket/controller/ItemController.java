@@ -2,6 +2,7 @@ package com.swapmarket.controller;
 
 import com.swapmarket.dto.ItemRequest;
 import com.swapmarket.dto.ItemResponse;
+import com.swapmarket.dto.ValueEstimate;
 import com.swapmarket.entity.User;
 import com.swapmarket.mapper.ResponseMapper;
 import com.swapmarket.service.ItemService;
@@ -12,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -25,6 +27,13 @@ public class ItemController {
     @GetMapping
     public ResponseEntity<List<ItemResponse>> listItems(@RequestParam(required = false) String category) {
         return ResponseEntity.ok(itemService.listAvailable(category).stream().map(mapper::toItem).toList());
+    }
+
+    // Swap value calculator for the listing form: ?originalPrice=1999&condition=Like new
+    @GetMapping("/estimate")
+    public ResponseEntity<ValueEstimate> estimate(@RequestParam(required = false) BigDecimal originalPrice,
+                                                   @RequestParam(required = false) String condition) {
+        return ResponseEntity.ok(new ValueEstimate(itemService.estimateValue(originalPrice, condition)));
     }
 
     // The logged-in user's own items (used by the UI to pick an item to offer in a swap).

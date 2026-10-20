@@ -32,6 +32,14 @@
         @if (it.category) { <span>{{ it.category }}</span> }
       </p>
       @if (it.description) { <p class="desc">{{ it.description }}</p> }
+      @if (it.estimatedValue !== null) {
+        <p class="est-value">
+          Estimated swap value <strong>{{ it.estimatedValue | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
+          <span class="muted small">
+            (original price {{ it.originalPrice | currency: 'INR' : 'symbol' : '1.0-0' }}, {{ it.condition || 'condition not stated' }})
+          </span>
+        </p>
+      }
       <p class="muted small">Listed by {{ it.owner.name }} on {{ it.createdAt | date: 'mediumDate' }}</p>
 
       <div class="card request-box">
@@ -42,13 +50,18 @@
         } @else {
           <h3>Request a swap</h3>
           <label>What will you offer?
-            <select [ngModel]="offeredId()" (ngModelChange)="offeredId.set($event)">
+            <select [ngModel]="offeredId()" (ngModelChange)="onOfferChange($event)">
               <option [ngValue]="null">Deposit only (no item)</option>
               @for (mine of myItems(); track mine.id) {
-                <option [ngValue]="mine.id">{{ mine.title }}</option>
+                <option [ngValue]="mine.id">
+                  {{ mine.title }}@if (mine.estimatedValue !== null) { (≈ {{ mine.estimatedValue | currency: 'INR' : 'symbol' : '1.0-0' }}) }
+                </option>
               }
             </select>
           </label>
+          @if (preview(); as p) {
+            <app-value-comparison [comparison]="p" />
+          }
           <button class="btn primary block" (click)="requestSwap()" [disabled]="submitting()">
             {{ submitting() ? 'Sending…' : 'Send swap request' }}
           </button>

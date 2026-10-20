@@ -9,6 +9,7 @@ import com.swapmarket.entity.SwapRequest;
 import com.swapmarket.entity.SwapTransaction;
 import com.swapmarket.entity.User;
 import com.swapmarket.repository.SwapTransactionRepository;
+import com.swapmarket.service.ValueCalculator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +25,7 @@ import java.util.List;
 public class ResponseMapper {
 
     private final SwapTransactionRepository transactionRepository;
+    private final ValueCalculator valueCalculator;
 
     public UserSummary toUser(User user) {
         return new UserSummary(user.getId(), user.getName());
@@ -32,8 +34,8 @@ public class ResponseMapper {
     public ItemResponse toItem(Item item) {
         List<String> images = item.getImages() == null ? List.of() : List.copyOf(item.getImages());
         return new ItemResponse(item.getId(), item.getTitle(), item.getDescription(), item.getCategory(),
-                item.getSize(), item.getCondition(), images, item.getStatus(),
-                toUser(item.getOwner()), item.getCreatedAt());
+                item.getSize(), item.getCondition(), item.getOriginalPrice(), valueCalculator.estimate(item),
+                images, item.getStatus(), toUser(item.getOwner()), item.getCreatedAt());
     }
 
     public PaymentSummary toPayment(SwapTransaction tx) {
@@ -47,6 +49,8 @@ public class ResponseMapper {
                 .orElse(null);
         ItemResponse offered = swap.getOfferedItem() == null ? null : toItem(swap.getOfferedItem());
         return new SwapRequestResponse(swap.getId(), swap.getStatus(), toItem(swap.getItem()), offered,
-                toUser(swap.getRequester()), payment, swap.getCreatedAt());
+                toUser(swap.getRequester()), payment,
+                valueCalculator.compare(swap.getItem(), swap.getOfferedItem()),
+                swap.getRejectionReason(), swap.getCreatedAt());
     }
 }

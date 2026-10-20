@@ -44,6 +44,13 @@
         @if (s.offeredItem) { {{ s.offeredItem.title }} } @else { deposit only }
       </p>
 
+      @if (s.status === 'PENDING' || s.status === 'ACCEPTED') {
+        <app-value-comparison [comparison]="s.valueComparison" />
+      }
+      @if (s.status === 'REJECTED' && s.rejectionReason) {
+        <p class="muted small">Reason given: “{{ s.rejectionReason }}”</p>
+      }
+
       @if (s.payment; as p) {
         <div class="payment">
           <div class="payment-head">
@@ -61,7 +68,16 @@
           <!-- Owner decides on a pending request -->
           @if (s.status === 'PENDING' && tab() === 'received') {
             <button class="btn primary" (click)="accept(s)">Accept</button>
-            <button class="btn" (click)="cancel(s)">Decline</button>
+            @if (decliningId() === s.id) {
+              <div class="decline-box">
+                <input type="text" maxlength="500" placeholder="Reason for declining (optional)"
+                  [ngModel]="declineReason()" (ngModelChange)="declineReason.set($event)" />
+                <button class="btn danger" (click)="reject(s)">Confirm decline</button>
+                <button class="btn" (click)="decliningId.set(null)">Back</button>
+              </div>
+            } @else {
+              <button class="btn" (click)="startDecline(s)">Decline</button>
+            }
           }
 
           <!-- Requester withdraws a pending request -->

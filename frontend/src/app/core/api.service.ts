@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { API_URL } from './config';
-import { Item, ItemPayload, PaymentSummary, SwapRequest } from './models';
+import { Item, ItemPayload, PaymentSummary, SwapRequest, ValueComparison } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -22,6 +22,12 @@ export class ApiService {
   createItem(body: ItemPayload) {
     return this.http.post<Item>(`${API_URL}/items`, body);
   }
+  /** Swap value calculator: what is this worth, given its original price and condition? */
+  estimateValue(originalPrice: number, condition: string) {
+    let params = new HttpParams().set('originalPrice', originalPrice);
+    if (condition) params = params.set('condition', condition);
+    return this.http.get<{ estimatedValue: number | null }>(`${API_URL}/items/estimate`, { params });
+  }
 
   // ---- swap requests ----
   sentSwaps() {
@@ -38,6 +44,16 @@ export class ApiService {
   }
   cancelSwap(id: number) {
     return this.http.patch<void>(`${API_URL}/swap-requests/${id}/cancel`, {});
+  }
+  /** Owner declines a pending request, optionally with a note for the requester. */
+  rejectSwap(id: number, reason: string) {
+    return this.http.patch<SwapRequest>(`${API_URL}/swap-requests/${id}/reject`, { reason });
+  }
+  /** Value comparison before a request exists (null offeredItemId = deposit only). */
+  valuePreview(itemId: number, offeredItemId: number | null) {
+    let params = new HttpParams().set('itemId', itemId);
+    if (offeredItemId !== null) params = params.set('offeredItemId', offeredItemId);
+    return this.http.get<ValueComparison>(`${API_URL}/swap-requests/value-preview`, { params });
   }
 
   // ---- escrow payments ----

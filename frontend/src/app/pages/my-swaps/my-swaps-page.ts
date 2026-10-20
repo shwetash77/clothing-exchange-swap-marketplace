@@ -12,12 +12,13 @@ import { RazorpayService } from '../../core/razorpay.service';
 import { ToastService } from '../../core/toast.service';
 import { PaymentTimeline } from '../../shared/payment-timeline';
 import { StatusBadge } from '../../shared/status-badge';
+import { ValueComparisonBox } from '../../shared/value-comparison';
 
 type Tab = 'sent' | 'received';
 
 @Component({
   selector: 'app-my-swaps-page',
-  imports: [FormsModule, RouterLink, DatePipe, CurrencyPipe, StatusBadge, PaymentTimeline],
+  imports: [FormsModule, RouterLink, DatePipe, CurrencyPipe, StatusBadge, PaymentTimeline, ValueComparisonBox],
   templateUrl: './my-swaps-page.html',
 })
 export class MySwapsPage implements OnInit {
@@ -34,6 +35,8 @@ export class MySwapsPage implements OnInit {
   readonly error = signal('');
   readonly busyId = signal<number | null>(null);
   readonly deposit = signal(200); // deposit amount in INR
+  readonly decliningId = signal<number | null>(null); // request whose "decline" note box is open
+  readonly declineReason = signal('');
 
   ngOnInit() {
     this.load();
@@ -61,8 +64,17 @@ export class MySwapsPage implements OnInit {
     this.run(s, this.api.acceptSwap(s.id), 'Swap accepted. The item is now reserved for this swap.');
   }
   cancel(s: SwapRequest) {
-    const msg = this.isMine(s) ? 'Swap request cancelled.' : 'Request declined.';
-    this.run(s, this.api.cancelSwap(s.id), msg);
+    this.run(s, this.api.cancelSwap(s.id), 'Swap request cancelled.');
+  }
+  startDecline(s: SwapRequest) {
+    this.declineReason.set('');
+    this.decliningId.set(s.id);
+  }
+  /** Owner says no. Unlike cancel (the requester withdrawing), this is recorded as REJECTED. */
+  reject(s: SwapRequest) {
+    const reason = this.declineReason().trim();
+    this.decliningId.set(null);
+    this.run(s, this.api.rejectSwap(s.id, reason), 'Request declined.');
   }
 
   // ---- escrow actions ----

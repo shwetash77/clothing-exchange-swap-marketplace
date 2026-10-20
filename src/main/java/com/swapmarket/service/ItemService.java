@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -17,6 +18,7 @@ import java.util.List;
 public class ItemService {
 
     private final ItemRepository itemRepository;
+    private final ValueCalculator valueCalculator;
 
     public Item createItem(ItemRequest request, User owner) {
         Item item = new Item();
@@ -26,6 +28,7 @@ public class ItemService {
         item.setCategory(request.getCategory());
         item.setSize(request.getSize());
         item.setCondition(request.getCondition());
+        item.setOriginalPrice(request.getOriginalPrice());
         item.setImages(request.getImages());
         item.setStatus(ItemStatus.AVAILABLE);
         return itemRepository.save(item);
@@ -45,5 +48,10 @@ public class ItemService {
     public Item getById(Long id) {
         return itemRepository.findById(id)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Item not found"));
+    }
+
+    /** Swap value calculator for the "list an item" form: price + condition -> estimated value. */
+    public BigDecimal estimateValue(BigDecimal originalPrice, String condition) {
+        return valueCalculator.estimate(originalPrice, condition);
     }
 }

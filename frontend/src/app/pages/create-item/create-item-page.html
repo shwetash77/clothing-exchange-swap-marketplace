@@ -40,6 +40,21 @@
       </label>
     </div>
 
+    <label>Original price (₹) <span class="muted small">(optional)</span>
+      <input type="number" min="1" formControlName="originalPrice" placeholder="What it cost new, e.g. 2499" />
+      @if (form.controls.originalPrice.touched && form.controls.originalPrice.invalid) {
+        <small class="field-error">Enter an amount between ₹1 and ₹10,00,000.</small>
+      }
+    </label>
+    <p class="value-hint">
+      @if (estimate(); as value) {
+        Estimated swap value: <strong>{{ value | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
+        <span class="muted small">based on the original price and condition. People use it to judge whether a swap is fair.</span>
+      } @else {
+        <span class="muted small">Add the original price and pick a condition to see an estimated swap value. It helps people judge whether a swap is fair.</span>
+      }
+    </p>
+
     <label>Image URLs <span class="muted small">(one per line, optional)</span>
       <textarea rows="3" formControlName="images" placeholder="https://…"></textarea>
     </label>

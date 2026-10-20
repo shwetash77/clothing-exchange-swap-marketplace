@@ -78,6 +78,19 @@ label.inline { display: flex; align-items: center; gap: .4rem; margin: 0; } labe
 .timeline .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--line); margin-right: .4rem; }
 .timeline li.done { color: var(--ink); } .timeline li.done .dot { background: var(--ok); } .timeline li.current { font-weight: 600; } .timeline li.bad .dot { background: var(--danger); }
 
+/* swap value comparison */
+.value-box { border: 1px solid var(--line); border-radius: 10px; padding: .65rem .9rem; margin: .7rem 0; background: #faf6f0; }
+.value-box.FAIR { background: #eef8f1; border-color: #cfe8d8; }
+.value-box.OFFER_LOWER { background: #fdf6e6; border-color: #f0dfb2; }
+.value-box.OFFER_HIGHER { background: #eaf1fb; border-color: #c9dbf3; }
+.vb-head { font-weight: 600; }
+.vb-detail { margin: .15rem 0 0; font-size: .85rem; color: var(--muted); }
+.vb-figures { display: flex; flex-wrap: wrap; gap: .3rem 1.5rem; font-size: .88rem; margin-top: .45rem; }
+.est-value { margin: .4rem 0; }
+.value-hint { margin: -.4rem 0 1rem; font-size: .9rem; }
+.decline-box { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; flex: 1 1 320px; }
+.decline-box input { flex: 1 1 200px; margin: 0; width: auto; }
+
 /* toasts */
 .toasts { position: fixed; right: 1rem; bottom: 1rem; display: flex; flex-direction: column; gap: .5rem; z-index: 20; max-width: 360px; }
 .toast { padding: .75rem 1rem; border-radius: 10px; color: #fff; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,.18); } .toast.success { background: var(--ok); } .toast.error { background: var(--danger); }

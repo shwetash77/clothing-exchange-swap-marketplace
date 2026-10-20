@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
@@ -33,6 +34,13 @@ public class Item {
     private String category;
     private String size;
     private String condition;
+
+    /**
+     * Original retail price in INR. Optional: it feeds the swap value
+     * calculator (see ValueCalculator). Items without it have no estimate.
+     */
+    @Column(precision = 12, scale = 2)
+    private BigDecimal originalPrice;
 
     @ElementCollection
     @CollectionTable(name = "item_images", joinColumns = @JoinColumn(name = "item_id"))

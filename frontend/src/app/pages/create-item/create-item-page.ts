@@ -1,14 +1,19 @@
+import { CurrencyPipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { catchError, combineLatest, debounceTime, map, of, startWith, switchMap } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { CATEGORIES, CONDITIONS, SIZES } from '../../core/config';
 import { errorMessage } from '../../core/errors';
 import { ToastService } from '../../core/toast.service';
 
+const MAX_PRICE = 1_000_000;
+
 @Component({
   selector: 'app-create-item-page',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, CurrencyPipe],
   templateUrl: './create-item-page.html',
 })
 export class CreateItemPage {
@@ -22,6 +27,8 @@ export class CreateItemPage {
   readonly conditions = CONDITIONS;
   readonly submitting = signal(false);
   readonly error = signal('');
+  /** Swap value calculator result for the price + condition currently in the form. */
+  readonly estimate = signal<number | null>(null);
 
   readonly form = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.maxLength(120)]],
@@ -29,8 +36,29 @@ export class CreateItemPage {
     category: ['', Validators.required],
     size: ['', Validators.required],
     condition: ['', Validators.required],
+    originalPrice: this.fb.control<number | null>(null, [Validators.min(1), Validators.max(MAX_PRICE)]),
     images: [''], // one image URL per line
   });
+
+  constructor() {
+    const { originalPrice, condition } = this.form.controls;
+    combineLatest([
+      originalPrice.valueChanges.pipe(startWith(originalPrice.value)),
+      condition.valueChanges.pipe(startWith(condition.value)),
+    ])
+      .pipe(
+        debounceTime(300),
+        switchMap(([price, cond]) => {
+          if (price === null || price < 1 || price > MAX_PRICE || !cond) return of(null);
+          return this.api.estimateValue(price, cond).pipe(
+            map((res) => res.estimatedValue),
+            catchError(() => of(null)),
+          );
+        }),
+        takeUntilDestroyed(),
+      )
+      .subscribe((value) => this.estimate.set(value));
+  }
 
   submit() {
     if (this.form.invalid) {
@@ -42,7 +70,7 @@ export class CreateItemPage {
 
     this.submitting.set(true);
     this.error.set('');
-    this.api.createItem({ ...v, images }).subscribe({
+    this.api.createItem({ ...v, originalPrice: v.originalPrice ?? undefined, images }).subscribe({
       next: () => {
         this.toast.success('Your item is now listed.');
         this.router.navigate(['/items']);

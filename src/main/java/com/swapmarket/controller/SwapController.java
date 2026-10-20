@@ -1,10 +1,13 @@
 package com.swapmarket.controller;
 
+import com.swapmarket.dto.RejectRequest;
 import com.swapmarket.dto.SwapRequestDto;
 import com.swapmarket.dto.SwapRequestResponse;
+import com.swapmarket.dto.ValueComparison;
 import com.swapmarket.entity.User;
 import com.swapmarket.mapper.ResponseMapper;
 import com.swapmarket.service.SwapService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -48,9 +51,26 @@ public class SwapController {
         return ResponseEntity.ok(mapper.toSwap(swapService.acceptSwap(id, currentUser)));
     }
 
+    // Owner turns a pending request down (optionally with a note for the requester).
+    @PatchMapping("/{id}/reject")
+    public ResponseEntity<SwapRequestResponse> reject(@PathVariable Long id,
+                                                       @Valid @RequestBody(required = false) RejectRequest body,
+                                                       @AuthenticationPrincipal User currentUser) {
+        String reason = body == null ? null : body.getReason();
+        return ResponseEntity.ok(mapper.toSwap(swapService.rejectSwap(id, currentUser, reason)));
+    }
+
     @PatchMapping("/{id}/cancel")
-    public ResponseEntity<Void> cancel(@PathVariable Long id) {
-        swapService.cancelSwap(id);
+    public ResponseEntity<Void> cancel(@PathVariable Long id,
+                                        @AuthenticationPrincipal User currentUser) {
+        swapService.cancelSwap(id, currentUser);
         return ResponseEntity.noContent().build();
+    }
+
+    // Value comparison before a request exists: ?itemId=requested&offeredItemId=mine (optional).
+    @GetMapping("/value-preview")
+    public ResponseEntity<ValueComparison> valuePreview(@RequestParam Long itemId,
+                                                         @RequestParam(required = false) Long offeredItemId) {
+        return ResponseEntity.ok(swapService.previewValue(itemId, offeredItemId));
     }
 }

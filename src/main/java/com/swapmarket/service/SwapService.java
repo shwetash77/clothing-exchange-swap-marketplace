@@ -1,6 +1,7 @@
 package com.swapmarket.service;
 
 import com.swapmarket.dto.SwapRequestDto;
+import com.swapmarket.dto.ValueComparison;
 import com.swapmarket.entity.Item;
 import com.swapmarket.entity.SwapRequest;
 import com.swapmarket.entity.User;
@@ -23,6 +24,7 @@ public class SwapService {
 
     private final SwapRequestRepository swapRequestRepository;
     private final ItemRepository itemRepository;
+    private final ValueCalculator valueCalculator;
 
     /**
      * Anyone can open a swap request - this doesn't touch the item's
@@ -45,6 +47,10 @@ public class SwapService {
             throw new ApiException(HttpStatus.CONFLICT, "Item is not available for swap");
         }
 
+        if (item.getOwner().getId().equals(requester.getId())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "You can't request your own item");
+        }
+
         SwapRequest request = new SwapRequest();
         request.setRequester(requester);
         request.setItem(item);
@@ -52,10 +58,32 @@ public class SwapService {
         if (dto.getOfferedItemId() != null) {
             Item offered = itemRepository.findById(dto.getOfferedItemId())
                     .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Offered item not found"));
+            // The value comparison is only meaningful if the offered item is really yours and free to swap.
+            if (!offered.getOwner().getId().equals(requester.getId())) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "You can only offer your own items");
+            }
+            if (offered.getStatus() != ItemStatus.AVAILABLE) {
+                throw new ApiException(HttpStatus.CONFLICT, "The item you offered is not available for swap");
+            }
             request.setOfferedItem(offered);
         }
 
         return swapRequestRepository.save(request);
+    }
+
+    /**
+     * Value comparison for a swap that has not been requested yet, so the UI can
+     * show "fair / lower / higher" as the requester picks which item to offer.
+     */
+    public ValueComparison previewValue(Long itemId, Long offeredItemId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Item not found"));
+        Item offered = null;
+        if (offeredItemId != null) {
+            offered = itemRepository.findById(offeredItemId)
+                    .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Offered item not found"));
+        }
+        return valueCalculator.compare(item, offered);
     }
 
     /**
@@ -114,6 +142,32 @@ public class SwapService {
         return swapRequestRepository.save(request);
     }
 
+    /**
+     * The owner turns down a pending request. Distinct from cancel: REJECTED means
+     * "the owner said no", CANCELLED means "the requester withdrew" (or a refund
+     * unwound an accepted swap). Nothing needs releasing because an item is only
+     * locked once a request is accepted.
+     */
+    @Transactional
+    public SwapRequest rejectSwap(Long swapRequestId, User currentUser, String reason) {
+        SwapRequest request = swapRequestRepository.findById(swapRequestId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Swap request not found"));
+
+        if (!request.getItem().getOwner().getId().equals(currentUser.getId())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Only the item's owner can reject this swap");
+        }
+
+        if (request.getStatus() != SwapStatus.PENDING) {
+            throw new ApiException(HttpStatus.CONFLICT, "Only pending requests can be rejected");
+        }
+
+        String note = reason == null ? "" : reason.trim();
+        request.setRejectionReason(note.isEmpty() ? null : note);
+        request.setStatus(SwapStatus.REJECTED);
+        request.setUpdatedAt(Instant.now());
+        return swapRequestRepository.save(request);
+    }
+
     @Transactional
     public void completeSwap(Long swapRequestId) {
         SwapRequest request = swapRequestRepository.findById(swapRequestId)
@@ -126,6 +180,29 @@ public class SwapService {
         Item item = request.getItem();
         item.setStatus(ItemStatus.SWAPPED);
         itemRepository.save(item);
+    }
+
+    /**
+     * User-facing cancel: only the two parties to the swap may cancel it, and only
+     * while it is still open. The internal overload below (no user) is what the
+     * refund flow calls once a held deposit has been returned.
+     */
+    @Transactional
+    public void cancelSwap(Long swapRequestId, User currentUser) {
+        SwapRequest request = swapRequestRepository.findById(swapRequestId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Swap request not found"));
+
+        boolean isRequester = request.getRequester().getId().equals(currentUser.getId());
+        boolean isOwner = request.getItem().getOwner().getId().equals(currentUser.getId());
+        if (!isRequester && !isOwner) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "You are not part of this swap");
+        }
+
+        if (request.getStatus() != SwapStatus.PENDING && request.getStatus() != SwapStatus.ACCEPTED) {
+            throw new ApiException(HttpStatus.CONFLICT, "This swap can no longer be cancelled");
+        }
+
+        cancelSwap(swapRequestId);
     }
 
     @Transactional
